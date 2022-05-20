@@ -1,2 +1,2 @@
-# KuisKuy
--
+#include <stdio.h>
+#include <omp.h>
