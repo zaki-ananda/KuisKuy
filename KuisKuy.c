@@ -20,9 +20,9 @@ int main(void){
 	int menu;
 	
 	do{
-		
 		repeatMenu = 1;
 		while(repeatMenu){
+			
 			system("clear");
 			system("CLS");
 			
@@ -45,11 +45,11 @@ int main(void){
 		if(!userQuit){
 			userLogout = 0;
 			do{
-				if(user.mode == 1){
+				if(user.mode == GURU){
 					printf("DBG Nama: %s\n", user.nama);
 					printf("DBG Mode: %d\n", user.mode);
 				}
-				if(user.mode == 2){
+				if(user.mode == SISWA){
 					printf("DBG Nama: %s\n", user.nama);
 					printf("DBG Mode: %d\n", user.mode);
 				}
