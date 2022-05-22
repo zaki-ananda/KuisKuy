@@ -89,9 +89,8 @@ int login(userInfo * user){
 		rewind(user_db);
 		
 		while(!feof(login_db) && !loginSuccess){
-			fscanf(login_db, " %s", db_user);
+			fscanf(login_db, " %15s %15s", db_user, db_pass);
 			printf("DBG User: %s\n", db_user);
-			fscanf(login_db, " %s", db_pass);
 			printf("DBG User: %s\n", db_pass);
 			if(strcmp(input_user, db_user) == 0
 				&& strcmp(input_pass, db_pass) == 0)
@@ -101,9 +100,8 @@ int login(userInfo * user){
 					printf("DBG Nama: %s\n", user->nama);
 					printf("DBG Mode: %d - %d\n", user->mode, db_count);
 				}
-				fscanf(user_db, " %63[^\n]s", user->nama);
+				fscanf(user_db, " %63[^\n]s %d", user->nama, &user->mode);
 				printf("DBG Nama: %s\n", user->nama);
-				fscanf(user_db, " %d", &user->mode);
 				printf("DBG Mode: %d\n", user->mode);
 				loginSuccess = 1;
 				loginRetry = 0;
