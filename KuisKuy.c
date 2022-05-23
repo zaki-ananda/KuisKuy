@@ -9,7 +9,8 @@ typedef struct{
 enum {GURU = 1, SISWA = 2}; //Enum untuk userInfo.mode
 
 int login(userInfo * user);
-
+int menu_guru();
+int menu_murid();
 
 int main(void){
 	userInfo user;
@@ -123,3 +124,38 @@ int login(userInfo * user){
 	} while(loginRetry);			
 	return loginSuccess;
 }	
+
+//Function menu user beserta menunya
+int menu_murid(){
+    int pilihan;
+    system("CLS");
+    printf("===================");
+	printf(" Selamat datang %s ",nama->name);
+	printf("===================");
+    //Tinggal di sesuaikan menu dengan pilihan nanti
+    printf("\n1. Lihat Daftar Kuis");
+    printf("\n2. Cari Kuis");
+    printf("\n3. Cek Nilai Pengerjaan Kuis");
+    printf("\n\n99. Keluar");
+    fflush(stdin);
+    printf("\n\nPilihan: ");
+    scanf("%d", &pilihan);
+    return pilihan;
+}
+
+//Function menu admin beserta menunya
+int menu_guru(){
+    int pilihan;
+    system("CLS");
+    printf("===================");
+    printf(" Selamat datang di KuisKuy ");
+    printf("===================");
+    printf("\n1. Buat Kuis Baru");
+    printf("\n2. Lakukan Penilaian Kuis");
+    printf("\n3. Cek Nilai Kuis Siswa");
+    printf("\n\n99. Keluar");
+    fflush(stdin);
+    printf("\n\nPilihan: ");
+    scanf("%d", &pilihan);
+    return pilihan;
+}
