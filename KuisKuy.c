@@ -5,68 +5,106 @@
 typedef struct{
 	char nama[64];
 	int mode;
-} userInfo;
-enum {GURU = 1, SISWA = 2}; //Enum untuk userInfo.mode
+} UserInfo;
+enum {GURU = 1, SISWA = 2}; //Enum untuk UserInfo.mode
 
-int login(userInfo * user);
-int menu_guru();
-int menu_murid();
+typedef struct Soal{
+	char tanya[256];
+	char pil_jawaban[4][256];
+	struct Soal * next;
+	struct Soal * prev;
+	char jawaban;
+} Soal;
+
+typedef struct{
+	char judul[64];
+	int ID;
+	Soal * soal;
+} Kuis;
+
+
+
+int menu_awal(UserInfo * user);
+int login(UserInfo * user);
+void menu_murid(UserInfo user);
+void menu_guru(UserInfo user);
+void buatKuis(void);
+void inputSoal(Soal * soal);
+int assign_kuisID(Kuis kuis);
+void writeToFile_kuis(Kuis kuis);
+
 
 int main(void){
-	userInfo user;
-	int loginSuccess = 0;
-	int userQuit = 0;
-	int userLogout = 0;
-	int repeatMenu;
-	int menu;
+	UserInfo user;
+	int userQuit;
 	
 	do{
-		repeatMenu = 1;
-		while(repeatMenu){
-			
-			system("clear");
-			system("CLS");
-			
-			printf("1. Login\n");
-			printf("2. Exit\n");
-			printf("Input: ");
-			scanf(" %d", &menu);
-			switch(menu){
-				case 1:
-					loginSuccess = login(&user);
-					if(loginSuccess) repeatMenu = 0;
-					break;
-				case 2:
-					userQuit = 1;
-					repeatMenu = 0;
-					break;
-			}
-		}
-		
+		userQuit = menu_awal(&user);
 		if(!userQuit){
-			userLogout = 0;
-			do{
-				if(user.mode == GURU){
-					printf("DBG Nama: %s\n", user.nama);
-					printf("DBG Mode: %d\n", user.mode);
-				}
-				if(user.mode == SISWA){
-					printf("DBG Nama: %s\n", user.nama);
-					printf("DBG Mode: %d\n", user.mode);
-				}
-			}while(!userLogout);
+			if(user.mode == GURU){
+				printf("DBG Nama: %s\n", user.nama);
+				printf("DBG Mode: %d\n", user.mode);
+				menu_guru(user);
+			}
+			if(user.mode == SISWA){
+				printf("DBG Nama: %s\n", user.nama);
+				printf("DBG Mode: %d\n", user.mode);
+				menu_murid(user);				
+			}
 		}
 	} while(!userQuit);
 	return 0;
 }
 
-int login(userInfo * user){
+//Menu sebelum user melakukan login
+//Akan mereturn userQuit
+int menu_awal(UserInfo * user){
+	int repeatMenu;
+	int menu;
+	int loginSuccess;
+	int userQuit;
+	
+	do{
+		system("clear");
+		system("CLS");
+		
+		userQuit = 0;
+		repeatMenu = 1;
+		
+		printf("1. Login\n");
+		printf("2. Exit\n");
+		printf("Input: ");
+		scanf(" %d", &menu);
+		switch(menu){
+			case 1:
+				loginSuccess = login(user);
+				if(loginSuccess) repeatMenu = 0;
+				break;
+			case 2:
+				userQuit = 1;
+				repeatMenu = 0;
+				break;
+		}
+	} while(repeatMenu);
+	printf("DBG menu_awal() returned %d\n", userQuit);
+	return userQuit;
+}
+
+//Membaca file login.txt dan membandingkannya dengan login attempt
+//Apabila berhasil, assign UserInfo yang sesuai dari akun.txt ke user, kemudian return 1
+//Return 0 apabila tidak berhasil dan user ingin keluar dari menu login
+int login(UserInfo * user){
 	FILE * login_db = fopen("login.txt", "r");
 	FILE * user_db = fopen("akun.txt", "r");
 	
-	int db_count = 0;
-	int loginSuccess = 0;
-	int loginRetry = 0;
+	if(login_db == NULL || user_db == NULL){
+		printf("ERROR: File untuk login tidak ditemukan!\n");
+		exit(0);
+	}
+	
+	int db_count;
+	int loginSuccess;
+	int loginRetry;
 	
 	char input_conf;
 	char input_user[16];
@@ -78,6 +116,10 @@ int login(userInfo * user){
 	do{
 		system("clear");
 		system("CLS");
+		
+		db_count = 0;
+		loginSuccess = 0;
+		loginRetry = 0;
 		
 		printf("User: ");
 		scanf(" %15s", input_user);
@@ -110,52 +152,196 @@ int login(userInfo * user){
 			else
 				++db_count;
 		}
-		
 		if(!loginSuccess){
 			printf("ERROR: Login gagal!\n");
-			printf("Apakah Anda ingin kembali ke menu sebelumnya? (Y/N)\n");
+			printf("Apakah Anda ingin mencoba login ulang? (Y/N)\n");
 			printf("Input: ");
 			scanf(" %c", &input_conf);
 			if(input_conf == 'Y')
-				loginRetry = 0;
-			else
 				loginRetry = 1;
+			else
+				loginRetry = 0;
 		}
-	} while(loginRetry);			
+	} while(loginRetry);
+	fclose(login_db);
+	fclose(user_db);
+	printf("DBG login() returned %d\n", loginSuccess);
 	return loginSuccess;
 }	
 
+
+
 //Function menu user beserta menunya
-int menu_murid(){
+void menu_murid(UserInfo user){
     int pilihan;
-    system("CLS");
-    printf("===================");
-	printf(" Selamat datang %s ",nama->name);
-	printf("===================");
-    //Tinggal di sesuaikan menu dengan pilihan nanti
-    printf("\n1. Lihat Daftar Kuis");
-    printf("\n2. Cari Kuis");
-    printf("\n3. Cek Nilai Pengerjaan Kuis");
-    printf("\n\n99. Keluar");
-    fflush(stdin);
-    printf("\n\nPilihan: ");
-    scanf("%d", &pilihan);
-    return pilihan;
+    int repeatMenu;
+    
+    do{
+		system("CLS");
+		system("clear");
+		
+		repeatMenu = 1;
+		
+		printf("===================");
+		printf(" Selamat datang %s ",user.nama);
+		printf("===================");
+		//Tinggal di sesuaikan menu dengan pilihan nanti
+		printf("\n1. Lihat Daftar Kuis");
+		printf("\n2. Cari Kuis");
+		printf("\n3. Cek Nilai Pengerjaan Kuis");
+		printf("\n\n0. Logout");
+		fflush(stdin);
+		printf("\n\nPilihan: ");
+		scanf(" %d", &pilihan);
+		
+		switch(pilihan){
+			case 1:
+				printf("Lihat daftar kuis\n");
+				break;
+			case 2:
+				printf("Cari kuis");
+				break;
+			case 3:
+				printf("Cek nilai pengerjaan kuis");
+				break;
+			case 0:
+				repeatMenu = 0;
+				break;
+		}
+	} while(repeatMenu);
 }
 
 //Function menu admin beserta menunya
-int menu_guru(){
+void menu_guru(UserInfo user){
     int pilihan;
-    system("CLS");
-    printf("===================");
-    printf(" Selamat datang di KuisKuy ");
-    printf("===================");
-    printf("\n1. Buat Kuis Baru");
-    printf("\n2. Lakukan Penilaian Kuis");
-    printf("\n3. Cek Nilai Kuis Siswa");
-    printf("\n\n99. Keluar");
-    fflush(stdin);
-    printf("\n\nPilihan: ");
-    scanf("%d", &pilihan);
-    return pilihan;
+    int repeatMenu;
+    
+    do{
+		system("CLS");
+		system("clear");
+		
+		repeatMenu = 1;
+		
+		printf("===================");
+		printf(" Selamat datang di KuisKuy ");
+		printf("===================");
+		printf("\n1. Buat Kuis Baru");
+		printf("\n2. Lakukan Penilaian Kuis");
+		printf("\n3. Cek Nilai Kuis Siswa");
+		printf("\n\n0. Logout");
+		//fflush(stdin);
+		printf("\n\nPilihan: ");
+		scanf(" %d", &pilihan);
+		
+		switch(pilihan){
+			case 1:
+				buatKuis();
+				printf("DBG Finished buatKuis\n");
+				break;
+			case 2:
+				printf("Lakukan penilaian kuis\n");
+				break;
+			case 3:
+				printf("Cek nilai kuis siswa\n");
+				break;
+			case 0:
+				repeatMenu = 0;
+				break;
+		}
+	} while(repeatMenu);
 }
+
+void buatKuis(void){
+	Kuis kuisBaru;
+	int soalCounter = 1;
+	int repeatMembuatSoal;
+	char input_conf;
+	
+	system("CLS");
+	system("clear");
+	
+	printf("Judul kuis\n");
+	scanf(" %[^\n]s", kuisBaru.judul);
+	
+	
+	kuisBaru.soal = malloc(sizeof(Soal));
+	Soal * soalSekarang = kuisBaru.soal;
+	soalSekarang->prev = NULL;
+	
+	do{
+		printf("\n===== Soal %d =====\n", soalCounter);
+		inputSoal(soalSekarang);
+		
+		printf("Lanjut membuat soal berikutnya? (Y/N)\n");
+		printf("Input: ");
+		scanf(" %c", &input_conf);
+		if(input_conf == 'N'){
+			repeatMembuatSoal = 0;
+			soalSekarang->next = NULL;
+		} else{
+			soalSekarang->next = malloc(sizeof(Soal));
+			soalSekarang = soalSekarang->next;
+			++soalCounter;
+			repeatMembuatSoal = 1;
+		}
+		
+	} while(repeatMembuatSoal);
+	
+	kuisBaru.ID = assign_kuisID(kuisBaru);
+	
+	writeToFile_kuis(kuisBaru);
+}
+
+void inputSoal(Soal * soal){
+	char pil_counter;
+	
+	printf("Pertanyaan: \n");
+	scanf(" %[^\n]s ", soal->tanya);
+	
+	for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter){
+		printf("%c. ", pil_counter);
+		scanf(" %[^\n]s ", soal->pil_jawaban[pil_counter - 'A']);
+	}
+	
+	printf("Kunci Jawaban: ");
+	scanf(" %c", &soal->jawaban);
+}
+	
+int assign_kuisID(Kuis kuis){
+	FILE * daftarKuis = fopen("daftarkuis.txt", "r");
+	int kuisID;
+	
+	while(!feof(daftarKuis)){
+		fscanf(daftarKuis, " %d %*[^\n]s", &kuisID);
+	}
+	++kuisID;
+	
+	freopen("daftarkuis.txt", "a", daftarKuis);
+	fprintf(daftarKuis, "\n%04d %s", kuisID, kuis.judul);
+	fflush(daftarKuis);
+	
+	return kuisID;
+}	
+
+void writeToFile_kuis(Kuis kuis){
+	Soal * soalSekarang = kuis.soal;
+	char pil_counter;
+	
+	char filename[32];
+	sprintf(filename, "%04d.txt", kuis.ID);
+	FILE * soal_file = fopen(filename, "w");
+	
+	sprintf(filename, "%04d_jawaban.txt", kuis.ID);
+	FILE * jawaban_file = fopen(filename, "w");
+	
+	for( ; soalSekarang != NULL; soalSekarang = soalSekarang->next){
+		fprintf(soal_file, "\n%s", soalSekarang->tanya);
+		for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter)
+			fprintf(soal_file, "\n%c. %s", pil_counter, soalSekarang->pil_jawaban[pil_counter - 'A']);
+		
+		fprintf(jawaban_file, "%c", soalSekarang->jawaban);
+	}
+	fflush(soal_file);
+	fflush(jawaban_file);
+}
+
