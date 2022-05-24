@@ -5,6 +5,7 @@
 typedef struct{
 	char nama[64];
 	int mode;
+	int ID;
 } UserInfo;
 enum {GURU = 1, SISWA = 2}; //Enum untuk UserInfo.mode
 
