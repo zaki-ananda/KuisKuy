@@ -27,8 +27,11 @@ typedef struct{
 
 int menu_awal(UserInfo * user);
 int login(UserInfo * user);
+void merge(Kuis * kuis, int low, int mid, int high);
+void mergesort(Kuis *kuis, int low, int high);
 int menu_pilihKuis();
 void menu_murid(UserInfo user);
+	void outputKuis(int kuisID, int userID);
 void menu_guru(UserInfo user);
 	void buatKuis(void);
 		void inputSoal(Soal * soal);
