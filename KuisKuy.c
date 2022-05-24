@@ -141,11 +141,11 @@ int login(UserInfo * user){
 				&& strcmp(input_pass, db_pass) == 0)
 			{
 				while(db_count-- > 0){
-					fscanf(user_db, " %63[^\n] %d", user->nama, &user->mode);
+					fscanf(user_db, " %63[^\n] %d %d", user->nama, &user->mode, &user->ID);
 					printf("DBG Nama: %s\n", user->nama);
 					printf("DBG Mode: %d - %d\n", user->mode, db_count);
 				}
-				fscanf(user_db, " %63[^\n]s %d", user->nama, &user->mode);
+				fscanf(user_db, " %63[^\n]s %d %d", user->nama, &user->mode, &user->ID);
 				printf("DBG Nama: %s\n", user->nama);
 				printf("DBG Mode: %d\n", user->mode);
 				loginSuccess = 1;
