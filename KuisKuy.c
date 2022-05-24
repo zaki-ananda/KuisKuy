@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 typedef struct{
 	char nama[64];
@@ -24,17 +25,17 @@ typedef struct{
 } Kuis;
 
 
-
 int menu_awal(UserInfo * user);
 int login(UserInfo * user);
 int menu_pilihKuis();
 void menu_murid(UserInfo user);
 void menu_guru(UserInfo user);
-void buatKuis(void);
-void inputSoal(Soal * soal);
-int assign_kuisID(Kuis kuis);
-void writeToFile_kuis(Kuis kuis);
-void penilaian(int kuisID);
+	void buatKuis(void);
+		void inputSoal(Soal * soal);
+		int assign_kuisID(Kuis kuis);
+		void writeToFile_kuis(Kuis kuis);
+	void penilaian(int kuisID);
+	void outputNilai(int kuisID);
 
 
 int main(void){
@@ -43,6 +44,8 @@ int main(void){
 	
 	do{
 		userQuit = menu_awal(&user);
+		printf("DBG usermode %d\n", user.mode);
+		scanf(" %*s");
 		if(!userQuit){
 			if(user.mode == GURU){
 				printf("DBG Nama: %s\n", user.nama);
@@ -58,6 +61,7 @@ int main(void){
 	} while(!userQuit);
 	return 0;
 }
+
 
 //Menu sebelum user melakukan login
 //Akan mereturn userQuit
@@ -142,11 +146,11 @@ int login(UserInfo * user){
 				&& strcmp(input_pass, db_pass) == 0)
 			{
 				while(db_count-- > 0){
-					fscanf(user_db, " %63[^\n] %d %d", user->nama, &user->mode, &user->ID);
+					fscanf(user_db, " %63[^\n]%*c %d %d", user->nama, &user->mode, &user->ID);
 					printf("DBG Nama: %s\n", user->nama);
 					printf("DBG Mode: %d - %d\n", user->mode, db_count);
 				}
-				fscanf(user_db, " %63[^\n]s %d %d", user->nama, &user->mode, &user->ID);
+				fscanf(user_db, " %63[^\n]%*c %d %d", user->nama, &user->mode, &user->ID);
 				printf("DBG Nama: %s\n", user->nama);
 				printf("DBG Mode: %d\n", user->mode);
 				loginSuccess = 1;
@@ -155,6 +159,7 @@ int login(UserInfo * user){
 			else
 				++db_count;
 		}
+		scanf(" %*s");
 		if(!loginSuccess){
 			printf("ERROR: Login gagal!\n");
 			printf("Apakah Anda ingin mencoba login ulang? (Y/N)\n");
@@ -173,7 +178,7 @@ int login(UserInfo * user){
 }	
 
 //Membaca daftarkuis.txt dan mereturn kuisID apabila user memilih sebuah kuis
-//Return 0 jika user ingin kembali
+//Return 0 jika user ingin kembali 
 int menu_pilihKuis(){
 	FILE * daftarKuis = fopen("daftarkuis.txt", "r");
 	Kuis inputTest;
@@ -280,10 +285,13 @@ void menu_guru(UserInfo user){
 				printf("DBG Finished buatKuis\n");
 				break;
 			case 2:
-				printf("Lakukan penilaian kuis\n");
+				penilaian(menu_pilihKuis());
+				printf("DBG Finished Lakukan penilaian kuis\n");
+				scanf(" %*s");
 				break;
 			case 3:
-				printf("Cek nilai kuis siswa\n");
+				outputNilai(menu_pilihKuis());
+				scanf(" %*s");
 				break;
 			case 0:
 				repeatMenu = 0;
@@ -461,4 +469,6 @@ void penilaian(int kuisID){
 	}
 	fflush(kuisData);
 	fclose(kuisData);
+	fclose(jawabanFile);
 }
+
