@@ -176,6 +176,55 @@ int login(UserInfo * user){
 	printf("DBG login() returned %d\n", loginSuccess);
 	return loginSuccess;
 }	
+void merge(Kuis * kuis, int low, int mid, int high){
+    int i, j, k;
+    int n1 = mid - low + 1;
+    int n2 = high - mid;
+    char left[n1][50];
+    char right[n2][50];
+
+    for(i = 0; i < n1; i++){
+        strcpy(left[i], kuis[low + i].judul); 
+    }
+	for(j = 0; j < n2; j++){
+        strcpy(right[j], kuis[mid + 1 + j].judul);
+    }
+
+    i = 0;
+    j = 0;
+    k = low;
+
+   while(i < n1 && j < n2) {
+        if(strcmp(left[i], right[j]) <= 0){
+            strcpy(kuis[k].judul, left[i]);
+            i++;
+        } else{
+            strcpy(kuis[k].judul, right[j]);
+            j++;
+        }
+        k++;
+    }
+	while (i < n1) { 
+        strcpy(kuis[k].judul, left[i]); 
+        i++; 
+        k++; 
+    } 
+    while(j < n2){
+        strcpy(kuis[k].judul, right[j]);
+        j++;
+        k++;
+    }
+}
+
+void mergesort(Kuis *kuis, int low, int high){
+    if(low < high){
+        int mid = (low + high) / 2;
+
+        mergesort(kuis, low, mid);
+        mergesort(kuis, mid + 1, high);
+        merge(kuis, low, mid, high);
+    }
+}
 
 //Membaca daftarkuis.txt dan mereturn kuisID apabila user memilih sebuah kuis
 //Return 0 jika user ingin kembali 
@@ -198,18 +247,24 @@ int menu_pilihKuis(){
 	}
 	printf("DBG kuisCounter: %d\n", counter);
 	
-	Kuis kuisArr[counter];
+	int kuisArrSize = counter;
+	Kuis kuisArr[kuisArrSize];
 	
 	printf("Pilih salah satu kuis di bawah ini!\n");
 	rewind(daftarKuis);
 	for(counter = 0; !feof(daftarKuis); ++counter){
 		fscanf(daftarKuis, " %d %[^\n]s", &kuisArr[counter].ID, kuisArr[counter].judul);
+	}
+	
+	mergesort(kuisArr, 0, kuisArrSize-1);
+	
+	rewind(daftarKuis);
+	for(counter = 0; counter < kuisArrSize; ++counter){
 		printf("%d. %s\n", counter+1, kuisArr[counter].judul);
 	}
 	printf("0. Keluar\n");
 	printf("Input: ");
 	scanf(" %d", &menuInput);
-	
 	
 	if(menuInput == 0)
 		return 0;
@@ -242,6 +297,7 @@ void menu_murid(UserInfo user){
 		
 		switch(pilihan){
 			case 1:
+				outputKuis(menu_pilihKuis(), user.ID);
 				printf("Lihat daftar kuis\n");
 				break;
 			case 2:
@@ -255,6 +311,78 @@ void menu_murid(UserInfo user){
 				break;
 		}
 	} while(repeatMenu);
+}
+
+void outputKuis(int kuisID, int userID){
+	char filename[32];
+	char pil_counter;
+	int soalCounter = 1;
+	
+	FILE * kuisFile;
+	Soal * soalSekarang;
+	
+	Kuis kuis;
+	sprintf(filename, "%04d.txt", kuisID); //filename dibuat jadi kuisID
+	kuisFile = fopen(filename, "r"); 	// buka filename
+	
+	soalSekarang = malloc(sizeof(Soal)); //inisialisasi linked list soal
+	kuis.soal = soalSekarang;
+	
+	soalSekarang->prev = NULL;
+	//printf("\n****\n");
+	for( ; !feof(kuisFile); soalSekarang = soalSekarang->next){ //looping baca soal
+		fscanf(kuisFile, "\n %[^\n]s", soalSekarang->tanya); 
+		//printf("\n****\n");
+		
+		for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter) //looping baca pilihan jawaban
+			fscanf(kuisFile, "\n%c. %[^\n]s", &pil_counter, soalSekarang->pil_jawaban[pil_counter - 'A']);
+			printf("\n****\n");
+		soalSekarang->next = malloc(sizeof(Soal));
+	}
+	
+	soalSekarang->next = NULL;
+	FILE * daftarKuis = fopen("daftarkuis.txt", "r"); 
+	//printf("\n****\n");
+	while(!feof(daftarKuis)){
+		fscanf(daftarKuis, " %d %[^\n]s", &kuisID, kuis.judul);
+		if(kuisID == kuisID)
+			break;
+	}
+	
+	soalSekarang = kuis.soal;
+	
+	do {
+		system ("CLS");
+		printf("Judul Kuis: %s", kuis.judul);
+		
+		printf("\n===== Soal %d =====\n", soalCounter);
+		printf("Pertanyaan: \n");
+		printf("%s\n", soalSekarang->tanya);
+	
+		for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter){
+			printf("%c. ", pil_counter);
+			printf("%s\n", soalSekarang->pil_jawaban[pil_counter - 'A']);
+		}
+	
+		printf("\nJawab: ");
+		scanf(" %c", &soalSekarang->jawaban);
+		
+		if (soalSekarang->prev != NULL) {
+			printf("\n(<) Soal Sebelumnya");
+			soalSekarang = soalSekarang->prev;
+			soalCounter--;
+		}
+		if (soalSekarang->next != NULL) { 
+			printf("\n(>) Soal Berikutnya");
+			soalSekarang = soalSekarang->next;
+			soalCounter++;
+		}
+		else {
+			printf("\n(>) Kumpulkan jawaban");
+			soalSekarang = soalSekarang->next;
+		}
+	} while (soalSekarang != NULL);
+		
 }
 
 //Function menu admin beserta menunya
