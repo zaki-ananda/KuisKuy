@@ -472,3 +472,49 @@ void penilaian(int kuisID){
 	fclose(jawabanFile);
 }
 
+//Membuka [kuisID]_data.txt dan membaca userID yang ada serta nilai kuisnya,
+//kemudian mencari userID yang sesuai pada akun.txt serta mendapatkan nama user
+//dengan userID tersebut. Kemudian melakukan output nama serta nilai
+void outputNilai(int kuisID){
+	char filename[32];
+	char inputToken[64];
+	char nama_current[64];
+	FILE * kuisData;
+	FILE * user_db;
+	int userID_kuisdata;
+	int userID_userdb;
+	float nilai_current;
+	
+	
+	sprintf(filename, "%04d_data.txt", kuisID);
+	kuisData = fopen(filename, "r");
+	if(kuisData == NULL){
+		printf("Kuis belum dinilai!\n");
+		scanf(" %*s");
+		return;
+	}
+	user_db = fopen("akun.txt", "r");
+	
+	system("CLS");
+	system("clear");
+	
+	fscanf(kuisData, " %[^\n]s", inputToken);
+	if(strcmp(inputToken, "NOSCORE") == 0){
+		printf("Kuis ini belum dinilai\n");
+		return;
+	}
+	
+	while(!feof(kuisData)){
+		fscanf(kuisData, " %[^\n]%*c", inputToken);
+		sscanf(inputToken, " %d %f", &userID_kuisdata, &nilai_current);
+		rewind(user_db);
+		while(!feof(user_db)){
+			fscanf(user_db, " %[^\n]%*c", nama_current);
+			fscanf(user_db, " %*d %d", &userID_userdb);
+			if(userID_kuisdata == userID_userdb){
+				printf("%s %.0f\n", nama_current, nilai_current);
+				break;
+			}
+		}
+	}
+}
