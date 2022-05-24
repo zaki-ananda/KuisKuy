@@ -33,6 +33,7 @@ void buatKuis(void);
 void inputSoal(Soal * soal);
 int assign_kuisID(Kuis kuis);
 void writeToFile_kuis(Kuis kuis);
+void penilaian(int kuisID);
 
 
 int main(void){
@@ -384,3 +385,79 @@ void writeToFile_kuis(Kuis kuis){
 	fflush(jawaban_file);
 }
 
+//Membuka [kuisID].txt dan membaca userID yang ada (User yang telah mengerjakan kuis)
+//Kemudian membuka [kuisID].jawaban.txt (kunci jawaban) dan membandingkannya
+//dengan [kuisID].jawaban.[userID].txt (jawaban dari user). Kemudian menuliskan
+//nilainya di [kuisID].txt
+void penilaian(int kuisID){
+	char filename[32];
+	char inputToken[32];
+	char input_conf;
+	FILE * kuisData;
+	FILE * jawabanFile;
+	int scored;
+	int kuisData_size;
+	int i;
+	int j_counter;
+	int j_size;
+	int benar_counter;
+	
+	sprintf(filename, "%04d_data.txt", kuisID);
+	kuisData = fopen(filename, "r");
+	
+	fscanf(kuisData, " %[^\n]s", inputToken);
+	scored = strcmp(inputToken, "SCORED") == 0;
+	if(scored){
+		printf("Kuis sudah dinilai. Apakah Anda ingin mengulang proses penilaian? (Y/N)\n");
+		printf("Input: ");
+		scanf("%c", &input_conf);
+		if(input_conf == 'N')
+			return;
+	}
+	
+	sprintf(filename, "%04d_jawaban.txt", kuisID);
+	jawabanFile = fopen(filename, "r");
+	fscanf(jawabanFile, " %*s");
+	j_size = ftell(jawabanFile);
+	char jawaban_kunci [j_size];
+	char jawaban [j_size];
+	rewind(jawabanFile);
+	fscanf(jawabanFile, "%s", jawaban_kunci);
+	
+	kuisData_size = 0;
+	while(!feof(kuisData)){
+		fscanf(kuisData, " %[^\n]s", inputToken);
+			++kuisData_size;
+	}
+	
+	int userID[kuisData_size];
+	float nilai[kuisData_size];
+	
+	rewind(kuisData);
+	fscanf(kuisData, " %*[^\n]s");
+	for(i = 0; i < kuisData_size; ++i){
+		fscanf(kuisData, " %[^\n]s", inputToken);
+		sscanf(inputToken, " %d %*d", &userID[i]);
+		sprintf(filename, "%04d_jawaban_%04d.txt", kuisID, userID[i]);
+		printf("DBG filename %s\n", filename);
+		freopen(filename, "r", jawabanFile);
+		fscanf(jawabanFile, "%s", jawaban);
+		benar_counter = 0;
+		for(j_counter = 0; j_counter < j_size; ++j_counter){
+			printf("DBG Jawaban %c %c\n", jawaban[j_counter], jawaban_kunci[j_counter]);
+			if(jawaban[j_counter] == jawaban_kunci[j_counter])
+				benar_counter++;
+		}
+		nilai[i] = ((float)benar_counter/(float)j_size) * 100.0;
+	}
+	
+	sprintf(filename, "%04d_data.txt", kuisID);
+	remove(filename);
+	freopen(filename, "w", kuisData);
+	fprintf(kuisData, "SCORED");
+	for(i = 0; i < kuisData_size; ++i){
+		fprintf(kuisData, "\n%04d %.0lf", userID[i], round(nilai[i]));
+	}
+	fflush(kuisData);
+	fclose(kuisData);
+}
