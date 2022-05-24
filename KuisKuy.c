@@ -26,6 +26,7 @@ typedef struct{
 
 int menu_awal(UserInfo * user);
 int login(UserInfo * user);
+int menu_pilihKuis();
 void menu_murid(UserInfo user);
 void menu_guru(UserInfo user);
 void buatKuis(void);
@@ -169,7 +170,45 @@ int login(UserInfo * user){
 	return loginSuccess;
 }	
 
-
+//Membaca daftarkuis.txt dan mereturn kuisID apabila user memilih sebuah kuis
+//Return 0 jika user ingin kembali
+int menu_pilihKuis(){
+	FILE * daftarKuis = fopen("daftarkuis.txt", "r");
+	Kuis inputTest;
+	int counter = 0;
+	int menuInput;
+	
+	system("CLS");
+	system("clear");
+	
+	while(!feof(daftarKuis)){
+		if(fscanf(daftarKuis, " %d %[^\n]s", &inputTest.ID, inputTest.judul) == 2)
+			++counter;
+		else{
+			printf("ERROR: File daftarkuis.txt tidak sesuai format!\n");
+			exit(0);
+		}
+	}
+	printf("DBG kuisCounter: %d\n", counter);
+	
+	Kuis kuisArr[counter];
+	
+	printf("Pilih salah satu kuis di bawah ini!\n");
+	rewind(daftarKuis);
+	for(counter = 0; !feof(daftarKuis); ++counter){
+		fscanf(daftarKuis, " %d %[^\n]s", &kuisArr[counter].ID, kuisArr[counter].judul);
+		printf("%d. %s\n", counter+1, kuisArr[counter].judul);
+	}
+	printf("0. Keluar\n");
+	printf("Input: ");
+	scanf(" %d", &menuInput);
+	
+	
+	if(menuInput == 0)
+		return 0;
+	else
+		return kuisArr[menuInput-1].ID;
+}
 
 //Function menu user beserta menunya
 void menu_murid(UserInfo user){
