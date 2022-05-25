@@ -32,7 +32,10 @@ void mergesort(Kuis *kuis, int low, int high);
 void outputNilai(int kuisID, int userID);
 int menu_pilihKuis();
 void menu_murid(UserInfo user);
-	void outputKuis(int kuisID, int userID);
+	void kerjakanKuis(int kuisID, int userID);
+		Kuis readFromFile_kuis(int kuisID);
+		void kerjakanSoal(char * judulKuis, Soal * soal, int soalCounter);
+		void submitJawaban(Kuis kuis, int userID);
 void menu_guru(UserInfo user);
 	void buatKuis(void);
 		void inputSoal(Soal * soal);
@@ -255,7 +258,7 @@ int menu_pilihKuis(){
 	int kuisArrSize = counter;
 	Kuis kuisArr[kuisArrSize];
 	
-	printf("Pilih salah satu kuis di bawah ini!\n");
+	
 	rewind(daftarKuis);
 	for(counter = 0; !feof(daftarKuis); ++counter){
 		fscanf(daftarKuis, " %d %[^\n]s", &kuisArr[counter].ID, kuisArr[counter].judul);
@@ -263,14 +266,18 @@ int menu_pilihKuis(){
 	
 	mergesort(kuisArr, 0, kuisArrSize-1);
 	
-	rewind(daftarKuis);
-	for(counter = 0; counter < kuisArrSize; ++counter){
-		printf("%d. %s\n", counter+1, kuisArr[counter].judul);
-	}
-	printf("0. Keluar\n");
-	printf("Input: ");
-	scanf(" %d", &menuInput);
-	//printf("DBG Returned %d", kuisArr[menuInput-1].ID);
+	do{
+		system("CLS");
+		system("clear");
+		printf("Pilih salah satu kuis di bawah ini!\n");
+		rewind(daftarKuis);
+		for(counter = 0; counter < kuisArrSize; ++counter){
+			printf("%d. %s\n", counter+1, kuisArr[counter].judul);
+		}
+		printf("0. Keluar\n");
+		printf("Input: ");
+		scanf(" %d", &menuInput);
+	} while(menuInput < 0 || menuInput > counter);
 	
 	if(menuInput == 0)
 		return 0;
@@ -282,6 +289,7 @@ int menu_pilihKuis(){
 void menu_murid(UserInfo user){
     int pilihan;
     int repeatMenu;
+    int retVal;
     
     do{
 		system("CLS");
@@ -303,13 +311,17 @@ void menu_murid(UserInfo user){
 		
 		switch(pilihan){
 			case 1:
-				outputKuis(menu_pilihKuis(), user.ID);
+				retVal = menu_pilihKuis();
+				if(retVal != 0)
+					kerjakanKuis(retVal, user.ID);
 				break;
 			case 2:
 				printf("Cari kuis");
 				break;
 			case 3:
-				outputNilai(menu_pilihKuis(), user.ID);
+				retVal = menu_pilihKuis();
+				if(retVal != 0)
+					outputNilai(retVal, user.ID);
 				break;
 			case 0:
 				repeatMenu = 0;
@@ -318,19 +330,71 @@ void menu_murid(UserInfo user){
 	} while(repeatMenu);
 }
 
-void outputKuis(int kuisID, int userID){
-	char filename[32];
-	char pil_counter;
+void kerjakanKuis(int kuisID, int userID){
 	int soalCounter = 1;
+	int invalidInput;
 	char menuInput;
 	
-	FILE * kuisFile;
-	FILE * jawabanFile;
 	Soal * soalSekarang;
 	
+	Kuis kuis = readFromFile_kuis(kuisID);
+
+	soalSekarang = kuis.soalPertama;
+	do {
+		system ("CLS");
+		system("clear");
+		
+		kerjakanSoal(kuis.judul, soalSekarang, soalCounter);
+		
+		if (soalSekarang->prev != NULL)
+			printf("(<) Soal Sebelumnya\n");
+		if (soalSekarang->next != NULL) 
+			printf("(>) Soal Berikutnya\n");
+		else 
+			printf("(>) Kumpulkan jawaban\n");
+		
+		do{
+			printf("Input: ");
+			scanf(" %c", &menuInput);
+			invalidInput = (menuInput != '<') && (menuInput != '>');
+			if(invalidInput)
+				printf("ERROR: Input tidak sesuai format!\n");
+		} while(invalidInput);
+		
+		switch(menuInput){
+			case '<':
+				soalSekarang = soalSekarang->prev;
+				--soalCounter;
+				break;
+			case '>':
+				if(soalSekarang->next != NULL){
+					soalSekarang = soalSekarang->next;
+					++soalCounter;
+				} else{
+					submitJawaban(kuis, userID);
+					soalSekarang = NULL;
+				}
+		}
+	} while (soalSekarang != NULL);
+	
+	system("CLS");
+	system("clear");
+	
+	printf("Soal berhasil disubmit!\n");
+	scanf(" %*s");
+}
+
+Kuis readFromFile_kuis(int kuisID){
 	Kuis kuis;
-	sprintf(filename, "%04d.txt", kuisID); //filename dibuat jadi kuisID
-	kuisFile = fopen(filename, "r"); 	// buka filename
+	FILE * kuisFile;
+	Soal * soalSekarang;
+	char filename[32];
+	char pil_counter;
+	int kuisID_fromFile;
+	
+	kuis.ID = kuisID;
+	sprintf(filename, "%04d.txt", kuis.ID);
+	kuisFile = fopen(filename, "r");
 	
 	soalSekarang = malloc(sizeof(Soal)); //inisialisasi linked list soal
 	kuis.soalPertama = soalSekarang;
@@ -351,76 +415,73 @@ void outputKuis(int kuisID, int userID){
 	}
 	
 	//Buka file daftarkuis.txt untuk mendapatkan judul kuis
-	int kuisID_fromFile;
 	FILE * daftarKuis = fopen("daftarkuis.txt", "r");
 	while(!feof(daftarKuis)){
 		fscanf(daftarKuis, " %d %[^\n]s", &kuisID_fromFile, kuis.judul);
-		if(kuisID_fromFile == kuisID)
+		if(kuisID_fromFile == kuis.ID)
 			break;
 	}
 	
-	soalSekarang = kuis.soalPertama;
-	do {
-		system ("CLS");
-		system("clear");
-		printf("Judul Kuis: %s", kuis.judul);
-		
-		printf("\n===== Soal %d =====\n", soalCounter);
-		printf("Pertanyaan: \n");
-		printf("%s\n", soalSekarang->tanya);
+	return kuis;
+}
+
+void kerjakanSoal(char * judulKuis, Soal * soal, int soalCounter){
+	char pil_counter;
+	int invalidInput;
+	char pil_jawaban;
 	
+	do{
+		system("CLS");
+		system("clear");
+		
+		printf("===== %s =====\n", judulKuis);
+		
+		printf("\nNo %d. ", soalCounter);
+		printf("%s\n", soal->tanya);
+
 		for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter){
 			printf("%c. ", pil_counter);
-			printf("%s\n", soalSekarang->pil_jawaban[pil_counter - 'A']);
+			printf("%s\n", soal->pil_jawaban[pil_counter - 'A']);
 		}
 		
 		//Output jawaban apabila user kembali ke soal sebelumnya
-		if(soalSekarang->jawaban != ' ')
-			printf("Jawaban sebelumnya: %c", soalSekarang->jawaban);
+		if(soal->jawaban != ' ')
+			printf("Jawaban sebelumnya: %c", soal->jawaban);
+		
 		printf("\nJawab: ");
-		scanf(" %c", &soalSekarang->jawaban);
+		scanf(" %c", &pil_jawaban);
 		
-		if (soalSekarang->prev != NULL)
-			printf("(<) Soal Sebelumnya\n");
-		if (soalSekarang->next != NULL) 
-			printf("(>) Soal Berikutnya\n");
-		else 
-			printf("(>) Kumpulkan jawaban\n");
-		printf("Input: ");
-		scanf(" %c", &menuInput);
-		
-		switch(menuInput){
-			case '<':
-				soalSekarang = soalSekarang->prev;
-				--soalCounter;
-				break;
-			case '>':
-				if(soalSekarang->next != NULL){
-					soalSekarang = soalSekarang->next;
-					++soalCounter;
-				} else{
-					sprintf(filename, "%04d_jawaban_%04d.txt", kuisID, userID);
-					jawabanFile = fopen(filename, "w");
-					for(soalSekarang = kuis.soalPertama; soalSekarang != NULL; soalSekarang = soalSekarang->next)
-						fprintf(jawabanFile, "%c", soalSekarang->jawaban);
-					
-					sprintf(filename, "%04d_data.txt", kuisID);
-					freopen(filename, "a", daftarKuis);
-					fprintf(daftarKuis, "\n%04d", userID);
-					
-					fflush(jawabanFile);
-					fflush(daftarKuis);
-					soalSekarang = NULL;
-				}
-		}
-	} while (soalSekarang != NULL);
-		
+		invalidInput = (pil_jawaban < 'A') || (pil_jawaban > 'D');
+		if(!invalidInput)
+			soal->jawaban = pil_jawaban;
+	} while(invalidInput);
+}
+
+void submitJawaban(Kuis kuis, int userID){
+	FILE * kuisData;
+	FILE * jawabanFile;
+	Soal * soalSekarang;
+	char filename[32];
+	
+	
+	sprintf(filename, "%04d_jawaban_%04d.txt", kuis.ID, userID);
+	jawabanFile = fopen(filename, "w");
+	for(soalSekarang = kuis.soalPertama; soalSekarang != NULL; soalSekarang = soalSekarang->next)
+		fprintf(jawabanFile, "%c", soalSekarang->jawaban);
+
+	sprintf(filename, "%04d_data.txt", kuis.ID);
+	kuisData = fopen(filename, "a");
+	fprintf(kuisData, "\n%04d", userID);
+
+	fflush(jawabanFile);
+	fflush(kuisData);
 }
 
 //Function menu admin beserta menunya
 void menu_guru(UserInfo user){
     int pilihan;
     int repeatMenu;
+    int retVal;
     
     do{
 		system("CLS");
@@ -445,12 +506,14 @@ void menu_guru(UserInfo user){
 				printf("DBG Finished buatKuis\n");
 				break;
 			case 2:
-				penilaian(menu_pilihKuis());
-				printf("DBG Finished Lakukan penilaian kuis\n");
-				scanf(" %*s");
+				retVal = menu_pilihKuis();
+				if(retVal != 0)
+					penilaian(retVal);
 				break;
 			case 3:
-				outputNilai(menu_pilihKuis(), 0);
+				retVal = menu_pilihKuis();
+				if(retVal != 0)
+					outputNilai(retVal, 0);
 				//scanf(" %*s");
 				break;
 			case 0:
@@ -499,10 +562,19 @@ void buatKuis(void){
 	kuisBaru.ID = assign_kuisID(kuisBaru);
 	
 	writeToFile_kuis(kuisBaru);
+	
+	system("CLS");
+	system("clear");
+	printf("Kuis berhasil ditambahkan!");
+	scanf(" %*s");
 }
 
 void inputSoal(Soal * soal){
 	char pil_counter;
+	int invalidInput;
+	
+	system("CLS");
+	system("clear");
 	
 	printf("Pertanyaan: \n");
 	scanf(" %[^\n]s ", soal->tanya);
@@ -512,8 +584,13 @@ void inputSoal(Soal * soal){
 		scanf(" %[^\n]s ", soal->pil_jawaban[pil_counter - 'A']);
 	}
 	
-	printf("Kunci Jawaban: ");
-	scanf(" %c", &soal->jawaban);
+	do{
+		printf("Kunci Jawaban: ");
+		scanf(" %c", &soal->jawaban);
+		invalidInput = (soal->jawaban < 'A') || (soal->jawaban > 'D');
+		if(invalidInput)
+			printf("ERROR: Jawaban harus berupa pilihan ABCD\n\n");
+	} while(invalidInput);
 }
 	
 int assign_kuisID(Kuis kuis){
@@ -580,12 +657,19 @@ void penilaian(int kuisID){
 	sprintf(filename, "%04d_data.txt", kuisID);
 	kuisData = fopen(filename, "r");
 	
+	if(kuisData == NULL || feof(kuisData)){
+		remove(filename);
+		printf("Kuis belum dikerjakan oleh siapapun!\n");
+		scanf(" %*s");
+		return;
+	}
+	
 	printf("DBG Opened %s\n", filename);
 	fscanf(kuisData, " %[^\n]s", inputToken);
 	printf("DBG Reached here!\n");
 	scored = strcmp(inputToken, "SCORED") == 0;
 	if(scored){
-		printf("Kuis sudah pernah dinilai. Apakah Anda ingin mengulang proses penilaian? (Y/N)\n");
+		printf("Kuis sudah pernah dinilai.\n Apakah Anda ingin mengulang proses penilaian? (Y/N)\n");
 		printf("Input: ");
 		scanf(" %c", &input_conf);
 		if(input_conf == 'N')
@@ -638,6 +722,11 @@ void penilaian(int kuisID){
 	fflush(kuisData);
 	fclose(kuisData);
 	fclose(jawabanFile);
+	
+	system("CLS");
+	system("clear");
+	printf("Penilaian berhasil dilakukan!\n");
+	scanf(" %*s");
 }
 
 //Membuka [kuisID]_data.txt dan membaca userID yang ada serta nilai kuisnya,
@@ -670,6 +759,7 @@ void outputNilai(int kuisID, int userID){
 	fscanf(kuisData, " %[^\n]s", inputToken);
 	if(strcmp(inputToken, "NOSCORE") == 0){
 		printf("Kuis ini belum dinilai\n");
+		scanf(" %*s");
 		return;
 	}
 	
@@ -695,3 +785,4 @@ void outputNilai(int kuisID, int userID){
 	}
 	scanf(" %*s");
 }
+
