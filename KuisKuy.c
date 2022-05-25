@@ -21,7 +21,7 @@ typedef struct Soal{
 typedef struct{
 	char judul[64];
 	int ID;
-	Soal * soal;
+	Soal * soalPertama;
 } Kuis;
 
 
@@ -29,6 +29,7 @@ int menu_awal(UserInfo * user);
 int login(UserInfo * user);
 void merge(Kuis * kuis, int low, int mid, int high);
 void mergesort(Kuis *kuis, int low, int high);
+void outputNilai(int kuisID, int userID);
 int menu_pilihKuis();
 void menu_murid(UserInfo user);
 	void outputKuis(int kuisID, int userID);
@@ -38,7 +39,7 @@ void menu_guru(UserInfo user);
 		int assign_kuisID(Kuis kuis);
 		void writeToFile_kuis(Kuis kuis);
 	void penilaian(int kuisID);
-	void outputNilai(int kuisID);
+	
 
 
 int main(void){
@@ -179,18 +180,19 @@ int login(UserInfo * user){
 	printf("DBG login() returned %d\n", loginSuccess);
 	return loginSuccess;
 }	
+
 void merge(Kuis * kuis, int low, int mid, int high){
     int i, j, k;
     int n1 = mid - low + 1;
     int n2 = high - mid;
-    char left[n1][50];
-    char right[n2][50];
+    Kuis left[n1];
+    Kuis right[n2];
 
     for(i = 0; i < n1; i++){
-        strcpy(left[i], kuis[low + i].judul); 
+        left[i] = kuis[low+i];
     }
 	for(j = 0; j < n2; j++){
-        strcpy(right[j], kuis[mid + 1 + j].judul);
+        right[j] = kuis[mid+1+j];
     }
 
     i = 0;
@@ -198,22 +200,22 @@ void merge(Kuis * kuis, int low, int mid, int high){
     k = low;
 
    while(i < n1 && j < n2) {
-        if(strcmp(left[i], right[j]) <= 0){
-            strcpy(kuis[k].judul, left[i]);
+        if(strcmp(left[i].judul, right[j].judul) <= 0){
+            kuis[k] = left[i];
             i++;
         } else{
-            strcpy(kuis[k].judul, right[j]);
+            kuis[k] = right[j];
             j++;
         }
         k++;
     }
 	while (i < n1) { 
-        strcpy(kuis[k].judul, left[i]); 
+        kuis[k] = left[i];
         i++; 
         k++; 
     } 
     while(j < n2){
-        strcpy(kuis[k].judul, right[j]);
+        kuis[k] = right[j];
         j++;
         k++;
     }
@@ -268,6 +270,7 @@ int menu_pilihKuis(){
 	printf("0. Keluar\n");
 	printf("Input: ");
 	scanf(" %d", &menuInput);
+	//printf("DBG Returned %d", kuisArr[menuInput-1].ID);
 	
 	if(menuInput == 0)
 		return 0;
@@ -301,13 +304,12 @@ void menu_murid(UserInfo user){
 		switch(pilihan){
 			case 1:
 				outputKuis(menu_pilihKuis(), user.ID);
-				printf("Lihat daftar kuis\n");
 				break;
 			case 2:
 				printf("Cari kuis");
 				break;
 			case 3:
-				printf("Cek nilai pengerjaan kuis");
+				outputNilai(menu_pilihKuis(), user.ID);
 				break;
 			case 0:
 				repeatMenu = 0;
@@ -320,8 +322,10 @@ void outputKuis(int kuisID, int userID){
 	char filename[32];
 	char pil_counter;
 	int soalCounter = 1;
+	char menuInput;
 	
 	FILE * kuisFile;
+	FILE * jawabanFile;
 	Soal * soalSekarang;
 	
 	Kuis kuis;
@@ -329,33 +333,36 @@ void outputKuis(int kuisID, int userID){
 	kuisFile = fopen(filename, "r"); 	// buka filename
 	
 	soalSekarang = malloc(sizeof(Soal)); //inisialisasi linked list soal
-	kuis.soal = soalSekarang;
+	kuis.soalPertama = soalSekarang;
 	
-	soalSekarang->prev = NULL;
-	//printf("\n****\n");
-	for( ; !feof(kuisFile); soalSekarang = soalSekarang->next){ //looping baca soal
-		fscanf(kuisFile, "\n %[^\n]s", soalSekarang->tanya); 
-		//printf("\n****\n");
-		
+	for(soalSekarang->prev = NULL; !feof(kuisFile); soalSekarang = soalSekarang->next){ //looping baca soal
+		printf("DBG ftell %ld\n", ftell(kuisFile));
+		fscanf(kuisFile, "\n %[^\n]s", soalSekarang->tanya); 	
 		for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter) //looping baca pilihan jawaban
-			fscanf(kuisFile, "\n%c. %[^\n]s", &pil_counter, soalSekarang->pil_jawaban[pil_counter - 'A']);
-			printf("\n****\n");
-		soalSekarang->next = malloc(sizeof(Soal));
+			fscanf(kuisFile, "\n%*c. %[^\n]", soalSekarang->pil_jawaban[pil_counter - 'A']);
+		soalSekarang->jawaban = ' ';
+		
+		//Buat soal baru apabila masih ada soal yang perlu dibaca
+		if(!feof(kuisFile)){
+			soalSekarang->next = malloc(sizeof(Soal));
+			(soalSekarang->next)->prev = soalSekarang;
+		} else
+			soalSekarang->next = NULL;
 	}
 	
-	soalSekarang->next = NULL;
-	FILE * daftarKuis = fopen("daftarkuis.txt", "r"); 
-	//printf("\n****\n");
+	//Buka file daftarkuis.txt untuk mendapatkan judul kuis
+	int kuisID_fromFile;
+	FILE * daftarKuis = fopen("daftarkuis.txt", "r");
 	while(!feof(daftarKuis)){
-		fscanf(daftarKuis, " %d %[^\n]s", &kuisID, kuis.judul);
-		if(kuisID == kuisID)
+		fscanf(daftarKuis, " %d %[^\n]s", &kuisID_fromFile, kuis.judul);
+		if(kuisID_fromFile == kuisID)
 			break;
 	}
 	
-	soalSekarang = kuis.soal;
-	
+	soalSekarang = kuis.soalPertama;
 	do {
 		system ("CLS");
+		system("clear");
 		printf("Judul Kuis: %s", kuis.judul);
 		
 		printf("\n===== Soal %d =====\n", soalCounter);
@@ -366,23 +373,45 @@ void outputKuis(int kuisID, int userID){
 			printf("%c. ", pil_counter);
 			printf("%s\n", soalSekarang->pil_jawaban[pil_counter - 'A']);
 		}
-	
+		
+		//Output jawaban apabila user kembali ke soal sebelumnya
+		if(soalSekarang->jawaban != ' ')
+			printf("Jawaban sebelumnya: %c", soalSekarang->jawaban);
 		printf("\nJawab: ");
 		scanf(" %c", &soalSekarang->jawaban);
 		
-		if (soalSekarang->prev != NULL) {
-			printf("\n(<) Soal Sebelumnya");
-			soalSekarang = soalSekarang->prev;
-			soalCounter--;
-		}
-		if (soalSekarang->next != NULL) { 
-			printf("\n(>) Soal Berikutnya");
-			soalSekarang = soalSekarang->next;
-			soalCounter++;
-		}
-		else {
-			printf("\n(>) Kumpulkan jawaban");
-			soalSekarang = soalSekarang->next;
+		if (soalSekarang->prev != NULL)
+			printf("(<) Soal Sebelumnya\n");
+		if (soalSekarang->next != NULL) 
+			printf("(>) Soal Berikutnya\n");
+		else 
+			printf("(>) Kumpulkan jawaban\n");
+		printf("Input: ");
+		scanf(" %c", &menuInput);
+		
+		switch(menuInput){
+			case '<':
+				soalSekarang = soalSekarang->prev;
+				--soalCounter;
+				break;
+			case '>':
+				if(soalSekarang->next != NULL){
+					soalSekarang = soalSekarang->next;
+					++soalCounter;
+				} else{
+					sprintf(filename, "%04d_jawaban_%04d.txt", kuisID, userID);
+					jawabanFile = fopen(filename, "w");
+					for(soalSekarang = kuis.soalPertama; soalSekarang != NULL; soalSekarang = soalSekarang->next)
+						fprintf(jawabanFile, "%c", soalSekarang->jawaban);
+					
+					sprintf(filename, "%04d_data.txt", kuisID);
+					freopen(filename, "a", daftarKuis);
+					fprintf(daftarKuis, "\n%04d", userID);
+					
+					fflush(jawabanFile);
+					fflush(daftarKuis);
+					soalSekarang = NULL;
+				}
 		}
 	} while (soalSekarang != NULL);
 		
@@ -421,8 +450,8 @@ void menu_guru(UserInfo user){
 				scanf(" %*s");
 				break;
 			case 3:
-				outputNilai(menu_pilihKuis());
-				scanf(" %*s");
+				outputNilai(menu_pilihKuis(), 0);
+				//scanf(" %*s");
 				break;
 			case 0:
 				repeatMenu = 0;
@@ -444,8 +473,8 @@ void buatKuis(void){
 	scanf(" %[^\n]s", kuisBaru.judul);
 	
 	
-	kuisBaru.soal = malloc(sizeof(Soal));
-	Soal * soalSekarang = kuisBaru.soal;
+	kuisBaru.soalPertama = malloc(sizeof(Soal));
+	Soal * soalSekarang = kuisBaru.soalPertama;
 	soalSekarang->prev = NULL;
 	
 	do{
@@ -504,7 +533,7 @@ int assign_kuisID(Kuis kuis){
 }	
 
 void writeToFile_kuis(Kuis kuis){
-	Soal * soalSekarang = kuis.soal;
+	Soal * soalSekarang = kuis.soalPertama;
 	char pil_counter;
 	
 	char filename[32];
@@ -514,6 +543,9 @@ void writeToFile_kuis(Kuis kuis){
 	sprintf(filename, "%04d_jawaban.txt", kuis.ID);
 	FILE * jawaban_file = fopen(filename, "w");
 	
+	sprintf(filename, "%04d_data.txt", kuis.ID);
+	FILE * data_file = fopen(filename, "w");
+	
 	for( ; soalSekarang != NULL; soalSekarang = soalSekarang->next){
 		fprintf(soal_file, "\n%s", soalSekarang->tanya);
 		for(pil_counter = 'A'; pil_counter <= 'D'; ++pil_counter)
@@ -521,11 +553,14 @@ void writeToFile_kuis(Kuis kuis){
 		
 		fprintf(jawaban_file, "%c", soalSekarang->jawaban);
 	}
+	fprintf(data_file, "NOSCORE");
+	
+	fflush(data_file);
 	fflush(soal_file);
 	fflush(jawaban_file);
 }
 
-//Membuka [kuisID].txt dan membaca userID yang ada (User yang telah mengerjakan kuis)
+//Membuka [kuisID]_data.txt dan membaca userID yang ada (User yang telah mengerjakan kuis)
 //Kemudian membuka [kuisID].jawaban.txt (kunci jawaban) dan membandingkannya
 //dengan [kuisID].jawaban.[userID].txt (jawaban dari user). Kemudian menuliskan
 //nilainya di [kuisID].txt
@@ -545,12 +580,14 @@ void penilaian(int kuisID){
 	sprintf(filename, "%04d_data.txt", kuisID);
 	kuisData = fopen(filename, "r");
 	
+	printf("DBG Opened %s\n", filename);
 	fscanf(kuisData, " %[^\n]s", inputToken);
+	printf("DBG Reached here!\n");
 	scored = strcmp(inputToken, "SCORED") == 0;
 	if(scored){
-		printf("Kuis sudah dinilai. Apakah Anda ingin mengulang proses penilaian? (Y/N)\n");
+		printf("Kuis sudah pernah dinilai. Apakah Anda ingin mengulang proses penilaian? (Y/N)\n");
 		printf("Input: ");
-		scanf("%c", &input_conf);
+		scanf(" %c", &input_conf);
 		if(input_conf == 'N')
 			return;
 	}
@@ -606,7 +643,8 @@ void penilaian(int kuisID){
 //Membuka [kuisID]_data.txt dan membaca userID yang ada serta nilai kuisnya,
 //kemudian mencari userID yang sesuai pada akun.txt serta mendapatkan nama user
 //dengan userID tersebut. Kemudian melakukan output nama serta nilai
-void outputNilai(int kuisID){
+//Apabila userID 0, maka fungsi akan mengoutput nilai seluruh pengerjaan
+void outputNilai(int kuisID, int userID){
 	char filename[32];
 	char inputToken[64];
 	char nama_current[64];
@@ -638,14 +676,22 @@ void outputNilai(int kuisID){
 	while(!feof(kuisData)){
 		fscanf(kuisData, " %[^\n]%*c", inputToken);
 		sscanf(inputToken, " %d %f", &userID_kuisdata, &nilai_current);
-		rewind(user_db);
-		while(!feof(user_db)){
-			fscanf(user_db, " %[^\n]%*c", nama_current);
-			fscanf(user_db, " %*d %d", &userID_userdb);
-			if(userID_kuisdata == userID_userdb){
-				printf("%s %.0f\n", nama_current, nilai_current);
+		if(userID == 0){ //Output semua nilai
+			rewind(user_db);
+			while(!feof(user_db)){
+				fscanf(user_db, " %[^\n]%*c", nama_current);
+				fscanf(user_db, " %*d %d", &userID_userdb);
+				if(userID_kuisdata == userID_userdb){
+					printf("%s %.0f\n", nama_current, nilai_current);
+					break;
+				}
+			}
+		} else{
+			if(userID_kuisdata == userID){
+				printf("Nilai Anda adalah %.0f\n", nilai_current);
 				break;
 			}
 		}
 	}
+	scanf(" %*s");
 }
