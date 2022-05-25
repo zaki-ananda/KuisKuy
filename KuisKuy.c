@@ -36,6 +36,8 @@ void menu_murid(UserInfo user);
 		Kuis readFromFile_kuis(int kuisID);
 		void kerjakanSoal(char * judulKuis, Soal * soal, int soalCounter);
 		void submitJawaban(Kuis kuis, int userID);
+	void searchKuis ();
+		void linear_search(Kuis * kuis, int n, char key[64], int searchResult[100]);
 void menu_guru(UserInfo user);
 	void buatKuis(void);
 		void inputSoal(Soal * soal);
@@ -316,7 +318,7 @@ void menu_murid(UserInfo user){
 					kerjakanKuis(retVal, user.ID);
 				break;
 			case 2:
-				printf("Cari kuis");
+				searchKuis();
 				break;
 			case 3:
 				retVal = menu_pilihKuis();
@@ -475,6 +477,74 @@ void submitJawaban(Kuis kuis, int userID){
 
 	fflush(jawabanFile);
 	fflush(kuisData);
+}
+
+void linear_search(Kuis * kuis, int n, char key[64], int searchResult[100]) {
+    int i, counter = 0;
+    for (i = 0; i < n; i++) {
+    	//printf("%s %s", kuis[i].judul, key);
+        if (strstr(kuis[i].judul, key) != NULL) {  //key is the lement to be searched
+            searchResult[counter] = i;
+            ++counter;
+    	}
+	}
+	searchResult[counter] = -1;
+}
+
+void searchKuis () {
+	FILE * daftarKuis = fopen("daftarkuis.txt", "r");
+	Kuis inputTest;
+    char key[64];
+	int counter = 0;
+	int searchResult[100];
+	int menuInput, i_result, i = 0;
+    //int n = sizeof(kuis) / sizeof(kuis[0]);
+    
+	system("CLS");
+	system("clear");
+	// nyari ukuran
+	rewind(daftarKuis);
+	for(counter = 0; !feof(daftarKuis); ++counter){
+		fscanf(daftarKuis, " %*d %*[^\n]s");
+	}
+	
+	int kuisArrSize = counter;
+	printf("%d", kuisArrSize);
+	Kuis kuisArr[kuisArrSize];
+	
+	// masukin isi dari file ke kuisArr
+	rewind(daftarKuis);
+	for(counter = 0; !feof(daftarKuis); ++counter){
+		fscanf(daftarKuis, " %d %[^\n]s", &kuisArr[counter].ID, kuisArr[counter].judul);
+		printf("%s", kuisArr[counter].judul);
+	}
+	
+	printf("\n======== Pencarian Kuis ========\n\n");
+	printf("Masukkan search key: ");
+	scanf(" %[^\n]s", &key);
+	printf("\n");
+	
+	linear_search(kuisArr, kuisArrSize, key, searchResult);
+	
+	do{
+		//system("CLS");
+		//system("clear");
+		if(searchResult[0] == -1) {
+			printf("Kuis tidak ditemukan");
+		} else {
+			for(i=0 ; searchResult[i] != -1; ++i) {
+				i_result = searchResult[i];
+				printf("%d. %s\n", i+1, kuisArr[i_result].judul);
+			}
+		}
+		
+		printf("\n=================================\n");
+		printf("0. Keluar\n");
+		printf("Input: ");
+		scanf(" %d", &menuInput);
+	} while(menuInput < 0 || menuInput > counter);
+	
+    return 0;
 }
 
 //Function menu admin beserta menunya
