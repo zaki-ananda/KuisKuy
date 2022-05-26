@@ -250,10 +250,13 @@ void registrasi(){
 			printf("ERROR: Input harus sesuai format!\n");
 	} while(invalidInput);
 	
-	freopen("login.txt", "a", login_db);
-	freopen("akun.txt", "a", user_db);
-	fprintf(login_db, "\n%s %s", input_user, input_pass);
-	fprintf(user_db, "\n%s\n%d %04d", nama, userMode, userID);
+	if(login_db == NULL && user_db == NULL){
+		login_db = fopen("login.txt", "a");
+		user_db = fopen("akun.txt", "a");
+	} else{
+		freopen("login.txt", "a", login_db);
+		freopen("akun.txt", "a", user_db);
+	}
 	
 	fflush(login_db);
 	fflush(user_db);
