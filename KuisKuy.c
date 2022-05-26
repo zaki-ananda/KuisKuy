@@ -236,8 +236,7 @@ void registrasi(){
 	printf("Nama Lengkap: ");
 	scanf(" %[^\n]%*c", nama);
 	
-	userID = 1;
-	while(user_db != NULL && !feof(user_db)){
+	while(!feof(user_db)){
 		fscanf(user_db, " %*[^\n] %*d %d", &userID);
 	}
 	++userID;
@@ -250,13 +249,10 @@ void registrasi(){
 			printf("ERROR: Input harus sesuai format!\n");
 	} while(invalidInput);
 	
-	if(login_db == NULL && user_db == NULL){
-		login_db = fopen("login.txt", "a");
-		user_db = fopen("akun.txt", "a");
-	} else{
-		freopen("login.txt", "a", login_db);
-		freopen("akun.txt", "a", user_db);
-	}
+	freopen("login.txt", "a", login_db);
+	freopen("akun.txt", "a", user_db);
+	fprintf(login_db, "\n%s %s", input_user, input_pass);
+	fprintf(user_db, "\n%s\n%d %04d", nama, userMode, userID);
 	
 	fflush(login_db);
 	fflush(user_db);
