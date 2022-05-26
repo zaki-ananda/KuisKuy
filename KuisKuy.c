@@ -236,7 +236,8 @@ void registrasi(){
 	printf("Nama Lengkap: ");
 	scanf(" %[^\n]%*c", nama);
 	
-	while(!feof(user_db)){
+	userID = 1;
+	while(user_db != NULL && !feof(user_db)){
 		fscanf(user_db, " %*[^\n] %*d %d", &userID);
 	}
 	++userID;
