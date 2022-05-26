@@ -56,17 +56,18 @@ int main(void){
 	
 	do{
 		userQuit = menu_awal(&user);
-		printf("DBG usermode %d\n", user.mode);
-		scanf(" %*s");
+		//printf("DBG usermode %d\n", user.mode);
+		//scanf(" %*s");
+		system("Pause");
 		if(!userQuit){
 			if(user.mode == GURU){
-				printf("DBG Nama: %s\n", user.nama);
-				printf("DBG Mode: %d\n", user.mode);
+				//printf("DBG Nama: %s\n", user.nama);
+				//printf("DBG Mode: %d\n", user.mode);
 				menu_guru(user);
 			}
 			if(user.mode == SISWA){
-				printf("DBG Nama: %s\n", user.nama);
-				printf("DBG Mode: %d\n", user.mode);
+				//printf("DBG Nama: %s\n", user.nama);
+				//printf("DBG Mode: %d\n", user.mode);
 				menu_murid(user);				
 			}
 		}
@@ -84,16 +85,16 @@ int menu_awal(UserInfo * user){
 	int userQuit;
 	
 	do{
-		system("clear");
 		system("CLS");
 		
 		userQuit = 0;
 		repeatMenu = 1;
 		
+		printf("========== KuisKuy ==========\n\n");
 		printf("1. Login\n");
 		printf("2. Registrasi\n");
 		printf("0. Exit\n");
-		printf("Input: ");
+		printf("\nInput: ");
 		scanf(" %d", &menu);
 		switch(menu){
 			case 1:
@@ -109,7 +110,7 @@ int menu_awal(UserInfo * user){
 				break;
 		}
 	} while(repeatMenu);
-	printf("DBG menu_awal() returned %d\n", userQuit);
+	//printf("DBG menu_awal() returned %d\n", userQuit);
 	return userQuit;
 }
 
@@ -137,7 +138,6 @@ int login(UserInfo * user){
 	
 	
 	do{
-		system("clear");
 		system("CLS");
 		
 		db_count = 0;
@@ -146,10 +146,10 @@ int login(UserInfo * user){
 		
 		printf("User: ");
 		scanf(" %15s", input_user);
-		printf("DBG User: %s\n", input_user);
+		//printf("DBG User: %s\n", input_user);
 		printf("Password: ");
 		scanf(" %15s", input_pass);
-		printf("DBG Password: %s\n", input_pass);
+		//printf("DBG Password: %s\n", input_pass);
 		
 		rewind(login_db);
 		rewind(user_db);
@@ -157,8 +157,8 @@ int login(UserInfo * user){
 		//Melakukan pencarian terhadap username dan password yang cocok pada login.txt
 		while(!feof(login_db) && !loginSuccess){
 			fscanf(login_db, " %15s %15s", db_user, db_pass);
-			printf("DBG User: %s\n", db_user);
-			printf("DBG User: %s\n", db_pass);
+			//printf("DBG User: %s\n", db_user);
+			//printf("DBG User: %s\n", db_pass);
 			
 			//Jika ditemukan username dan password yang cocok (login sukses)
 			if(strcmp(input_user, db_user) == 0
@@ -167,22 +167,23 @@ int login(UserInfo * user){
 				//Lakukan pencarian pada akun.txt untuk mendapatkan nama dan mode user
 				while(db_count-- > 0){
 					fscanf(user_db, " %63[^\n]%*c %d %d", user->nama, &user->mode, &user->ID);
-					printf("DBG Nama: %s\n", user->nama);
-					printf("DBG Mode: %d - %d\n", user->mode, db_count);
+					//printf("DBG Nama: %s\n", user->nama);
+					//printf("DBG Mode: %d - %d\n", user->mode, db_count);
 				}
 				fscanf(user_db, " %63[^\n]%*c %d %d", user->nama, &user->mode, &user->ID);
-				printf("DBG Nama: %s\n", user->nama);
-				printf("DBG Mode: %d\n", user->mode);
+				//printf("DBG Nama: %s\n", user->nama);
+				//printf("DBG Mode: %d\n", user->mode);
 				loginSuccess = 1;
 				loginRetry = 0;
 			}
 			else
 				++db_count;
 		}
-		scanf(" %*s");
+		//scanf(" %*s");
+		//system("Pause");
 		
 		if(!loginSuccess){
-			printf("ERROR: Login gagal!\n");
+			printf("\nERROR: Login gagal!\n");
 			printf("Apakah Anda ingin mencoba login ulang? (Y/N)\n");
 			printf("Input: ");
 			scanf(" %c", &input_conf);
@@ -213,7 +214,6 @@ void registrasi(){
 	
 	do{
 		system("CLS");
-		system("clear");
 		
 		repeatMenu = 0;
 		
@@ -227,7 +227,7 @@ void registrasi(){
 			if(strcmp(input_user, db_user) == 0){
 				printf("Username tersebut sudah terdaftar!\n");
 				repeatMenu = 1;
-				scanf(" %*s");
+				system("Pause");
 				break;
 			}
 		}
@@ -260,7 +260,7 @@ void registrasi(){
 	fclose(user_db);
 	
 	printf("\nRegistrasi berhasil!\n");
-	scanf(" %*s");
+	system("Pause");
 }
 
 void merge(Kuis * kuis, int low, int mid, int high){
@@ -326,12 +326,11 @@ int menu_pilihKuis(){
 	
 	if(daftarKuis == NULL){
 		printf("ERROR: File daftarkuis.txt tidak ditemukan atau belum ada kuis sama sekali!\n");
-		scanf(" %*s");
+		system("Pause");
 		return 0;
 	}
 	
 	system("CLS");
-	system("clear");
 	
 	//Menghitung banyaknya kuis yang terdaftar
 	while(!feof(daftarKuis)){
@@ -342,7 +341,7 @@ int menu_pilihKuis(){
 			exit(0);
 		}
 	}
-	printf("DBG kuisCounter: %d\n", counter);
+	//printf("DBG kuisCounter: %d\n", counter);
 	
 	int kuisArrSize = counter;
 	Kuis kuisArr[kuisArrSize];
@@ -363,7 +362,6 @@ int menu_pilihKuis(){
 	//Menampilkan opsi kuis yang ada + error handling input
 	do{
 		system("CLS");
-		system("clear");
 		printf("Pilih salah satu kuis di bawah ini!\n");
 		rewind(daftarKuis);
 		for(counter = 0; counter < kuisArrSize; ++counter){
@@ -390,7 +388,6 @@ void menu_murid(UserInfo user){
     
     do{
 		system("CLS");
-		system("clear");
 		
 		repeatMenu = 1;
 		
@@ -442,7 +439,6 @@ void kerjakanKuis(int kuisID, int userID){
 	soalSekarang = kuis.soalPertama;
 	do {
 		system ("CLS");
-		system("clear");
 		
 		kerjakanSoal(kuis.judul, soalSekarang, soalCounter);
 		
@@ -479,10 +475,9 @@ void kerjakanKuis(int kuisID, int userID){
 	} while (soalSekarang != NULL);
 	
 	system("CLS");
-	system("clear");
 	
 	printf("Jawaban berhasil disubmit!\n");
-	scanf(" %*s");
+	system("Pause");
 }
 
 Kuis readFromFile_kuis(int kuisID){
@@ -542,8 +537,7 @@ void kerjakanSoal(char * judulKuis, Soal * soal, int soalCounter){
 	//Looping untuk error handling input pilihan jawaban
 	do{
 		system("CLS");
-		system("clear");
-		
+
 		printf("===== %s =====\n", judulKuis);
 		
 		printf("\nNo %d. ", soalCounter);
@@ -619,12 +613,11 @@ int searchKuis () {
     
     if(daftarKuis == NULL){
 		printf("ERROR: File daftarkuis.txt tidak ditemukan atau belum ada kuis sama sekali!\n");
-		scanf(" %*s");
+		system("Pause");
 		return 0;
 	}
     
 	system("CLS");
-	system("clear");
 	
 	// nyari ukuran
 	rewind(daftarKuis);
@@ -639,7 +632,7 @@ int searchKuis () {
 	rewind(daftarKuis);
 	for(counter = 0; !feof(daftarKuis); ++counter){
 		fscanf(daftarKuis, " %d %[^\n]s", &kuisArr[counter].ID, kuisArr[counter].judul);
-		printf("%s", kuisArr[counter].judul);
+		//printf("%s", kuisArr[counter].judul);
 	}
 	
 	printf("\n======== Pencarian Kuis ========\n\n");
@@ -652,10 +645,9 @@ int searchKuis () {
 	//Output menu hasil pencarian + error handling input pemilihan kuis
 	do{
 		system("CLS");
-		system("clear");
 		if(searchResult[0] == -1) {
 			printf("Kuis tidak ditemukan");
-			scanf(" %*s");
+			system("Pause");
 			return 0;
 		} 
 		else {
@@ -678,7 +670,7 @@ int searchKuis () {
 		return 0;
 	else{ //Return ID dari kuis yang dipilih
 		i_result = searchResult[menuInput-1];
-		printf("DBG returned kuisID%d\n", kuisArr[i_result].ID);
+		//printf("DBG returned kuisID%d\n", kuisArr[i_result].ID);
 		scanf( "%*s");
 		return kuisArr[i_result].ID;
 	}
@@ -692,7 +684,6 @@ void menu_guru(UserInfo user){
     
     do{
 		system("CLS");
-		system("clear");
 		
 		repeatMenu = 1;
 		
@@ -710,7 +701,7 @@ void menu_guru(UserInfo user){
 		switch(pilihan){
 			case 1:
 				buatKuis();
-				printf("DBG Finished buatKuis\n");
+				//printf("DBG Finished buatKuis\n");
 				break;
 			case 2:
 				retVal = menu_pilihKuis();
@@ -721,7 +712,7 @@ void menu_guru(UserInfo user){
 				retVal = menu_pilihKuis();
 				if(retVal != 0)
 					outputNilai(retVal, 0);
-				//scanf(" %*s");
+				//system("Pause");
 				break;
 			case 0:
 				repeatMenu = 0;
@@ -737,7 +728,6 @@ void buatKuis(void){
 	char input_conf;
 	
 	system("CLS");
-	system("clear");
 	
 	printf("Judul kuis\n");
 	scanf(" %[^\n]s", kuisBaru.judul);
@@ -772,9 +762,8 @@ void buatKuis(void){
 	writeToFile_kuis(kuisBaru);
 	
 	system("CLS");
-	system("clear");
-	printf("Kuis berhasil ditambahkan!");
-	scanf(" %*s");
+	printf("Kuis berhasil ditambahkan!\n");
+	system("Pause");
 }
 
 void inputSoal(Soal * soal){
@@ -782,7 +771,6 @@ void inputSoal(Soal * soal){
 	int invalidInput;
 	
 	system("CLS");
-	system("clear");
 	
 	printf("Pertanyaan: \n");
 	scanf(" %[^\n]s ", soal->tanya);
@@ -885,7 +873,7 @@ void penilaian(int kuisID){
 	if(kuisData == NULL || feof(kuisData)){
 		remove(filename);
 		printf("Kuis belum dikerjakan oleh siapapun!\n");
-		scanf(" %*s");
+		system("Pause");
 		return;
 	}
 	
@@ -899,7 +887,7 @@ void penilaian(int kuisID){
 			return;
 	} else if(strcmp(inputToken, "NOSCORE") != 0){
 		printf("ERROR: Tidak ada flag pada file data kuis!\n");
-		scanf(" %*s");
+		system("Pause");
 		return;
 	}
 	
@@ -944,14 +932,14 @@ void penilaian(int kuisID){
 		benar_counter = 0;
 		#pragma omp parallel for num_threads(omp_get_max_threads())
 		for(j_counter = 0; j_counter < j_size; ++j_counter){
-			printf("DBG Jawaban %c %c\n", jawaban[j_counter], jawaban_kunci[j_counter]);
+			//printf("DBG Jawaban %c %c\n", jawaban[j_counter], jawaban_kunci[j_counter]);
 			if(jawaban[j_counter] == jawaban_kunci[j_counter]){
 				#pragma omp critical
 				benar_counter++;
 			}
 		}
-		printf("DBG benar_counter %d\n", benar_counter);
-		scanf(" %*s");
+		//printf("DBG benar_counter %d\n", benar_counter);
+		system("Pause");
 		nilai[i] = ((float)benar_counter/(float)j_size) * 100.0;
 	}
 	
@@ -969,9 +957,8 @@ void penilaian(int kuisID){
 	fclose(jawabanFile);
 	
 	system("CLS");
-	system("clear");
 	printf("Penilaian berhasil dilakukan!\n");
-	scanf(" %*s");
+	system("Pause");
 }
 
 void outputNilai(int kuisID, int userID){
@@ -990,25 +977,24 @@ void outputNilai(int kuisID, int userID){
 	kuisData = fopen(filename, "r");
 	if(kuisData == NULL){
 		printf("ERROR: Tidak ada file data!\n");
-		scanf(" %*s");
+		system("Pause");
 	}
 	
 	fscanf(kuisData, " %[^\n]s", inputToken);
 	
 	if(strcmp(inputToken, "NOSCORE") == 0){
 		printf("Kuis ini belum dinilai\n");
-		scanf(" %*s");
+		system("Pause");
 		return;
 	} else if(strcmp(inputToken, "SCORED") != 0){
 		printf("ERROR: Tidak ada flag penilaian pada file data kuis!\n");
-		scanf(" %*s");
+		system("Pause");
 		return;
 	}
 	
 	user_db = fopen("akun.txt", "r");
 	
 	system("CLS");
-	system("clear");
 	
 	//Looping seluruh isi [kuisID]_data.txt
 	while(!feof(kuisData)){
@@ -1041,5 +1027,5 @@ void outputNilai(int kuisID, int userID){
 	
 	fclose(kuisData);
 	fclose(user_db);
-	scanf(" %*s");
+	system("Pause");
 }
