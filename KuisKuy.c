@@ -1,3 +1,13 @@
+/* Topik : KuisKuy
+Program Kuis
+Kelompok 11
+Created by :
+1. Alifya Zhafira Ananda (2106704111)
+2. Zaki Ananda (2106705474)
+
+On 26/05/2022
+Pemrograman Lanjut-02*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,7 +39,6 @@ typedef struct{
 int menu_awal(UserInfo * user);
 int login(UserInfo * user);
 void registrasi();
-
 void merge(Kuis * kuis, int low, int mid, int high);
 void mergesort(Kuis *kuis, int low, int high);
 void outputNilai(int kuisID, int userID);
@@ -54,6 +63,7 @@ int main(void){
 	UserInfo user;
 	int userQuit;
 	
+	system("color f1");
 	do{
 		userQuit = menu_awal(&user);
 		//printf("DBG usermode %d\n", user.mode);
@@ -90,7 +100,9 @@ int menu_awal(UserInfo * user){
 		userQuit = 0;
 		repeatMenu = 1;
 		
-		printf("========== KuisKuy ==========\n\n");
+		printf("=========================\n");
+		printf("||       KuisKuy       ||\n");
+		printf("=========================\n\n");
 		printf("1. Login\n");
 		printf("2. Registrasi\n");
 		printf("0. Exit\n");
@@ -144,6 +156,9 @@ int login(UserInfo * user){
 		loginSuccess = 0;
 		loginRetry = 0;
 		
+		printf("=========================\n");
+		printf("||        LOGIN        ||\n");
+		printf("=========================\n\n");
 		printf("User: ");
 		scanf(" %15s", input_user);
 		//printf("DBG User: %s\n", input_user);
@@ -181,6 +196,9 @@ int login(UserInfo * user){
 		}
 		//scanf(" %*s");
 		//system("Pause");
+		if(loginSuccess){
+			printf("\nLogin berhasil dilakukan!\n\n");
+		}
 		
 		if(!loginSuccess){
 			printf("\nERROR: Login gagal!\n");
@@ -217,6 +235,9 @@ void registrasi(){
 		
 		repeatMenu = 0;
 		
+		printf("==============================\n");
+		printf("||        REGISTRASI        ||\n");
+		printf("==============================\n\n");
 		printf("Username: ");
 		scanf(" %s", input_user);
 		printf("Password: ");
@@ -267,16 +288,19 @@ void merge(Kuis * kuis, int low, int mid, int high){
     int i, j, k;
     int n1 = mid - low + 1;
     int n2 = high - mid;
+    
+    //create temp arrays
     Kuis left[n1];
     Kuis right[n2];
-
+	
+	//copy data to temp array
     for(i = 0; i < n1; i++){
         left[i] = kuis[low+i];
     }
 	for(j = 0; j < n2; j++){
         right[j] = kuis[mid+1+j];
     }
-
+	//merge the temp arrays
     i = 0;
     j = 0;
     k = low;
@@ -291,11 +315,13 @@ void merge(Kuis * kuis, int low, int mid, int high){
         }
         k++;
     }
+    //copying the remaining elements of L[]
 	while (i < n1) { 
         kuis[k] = left[i];
         i++; 
         k++; 
     } 
+    //copying the remaining elements of R[]
     while(j < n2){
         kuis[k] = right[j];
         j++;
@@ -308,9 +334,9 @@ void mergesort(Kuis *kuis, int low, int high){
         int mid = (low + high) / 2;
 
 		#pragma omp task
-		mergesort(kuis, low, mid);
+		mergesort(kuis, low, mid); //Call MergeSort for first half
 		#pragma omp task
-		mergesort(kuis, mid + 1, high);
+		mergesort(kuis, mid + 1, high); //Call mergeSort for second half
 		#pragma omp taskwait
         merge(kuis, low, mid, high);
     }
@@ -391,9 +417,7 @@ void menu_murid(UserInfo user){
 		
 		repeatMenu = 1;
 		
-		printf("===================");
-		printf(" Selamat datang %s ",user.nama);
-		printf("===================");
+		printf("=== Selamat Datang, Siswa %s ===\n", user.nama);
 		//Tinggal di sesuaikan menu dengan pilihan nanti
 		printf("\n1. Lihat Daftar Kuis");
 		printf("\n2. Cari Kuis");
@@ -688,7 +712,7 @@ void menu_guru(UserInfo user){
 		repeatMenu = 1;
 		
 		printf("===================");
-		printf(" Selamat datang di KuisKuy ");
+		printf("=== Selamat datang, Guru %s ===", user.nama);
 		printf("===================");
 		printf("\n1. Buat Kuis Baru");
 		printf("\n2. Lakukan Penilaian Kuis");
@@ -761,8 +785,8 @@ void buatKuis(void){
 	
 	writeToFile_kuis(kuisBaru);
 	
-	system("CLS");
-	printf("Kuis berhasil ditambahkan!\n");
+	system ("CLS");
+	printf("\nKuis berhasil ditambahkan!\n");
 	system("Pause");
 }
 
