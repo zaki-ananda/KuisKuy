@@ -725,7 +725,7 @@ int searchKuis () {
 	else{ //Return ID dari kuis yang dipilih
 		i_result = searchResult[menuInput-1];
 		//printf("DBG returned kuisID%d\n", kuisArr[i_result].ID);
-		scanf( "%*s");
+		scanf("%*s");
 		return kuisArr[i_result].ID;
 	}
 }
