@@ -222,6 +222,8 @@ int login(UserInfo * user){
 void registrasi(){
 	FILE * login_db = fopen("login.txt", "r");
 	FILE * user_db = fopen("akun.txt", "r");
+	
+	int noFile = 0;
 	char input_user[16];
 	char input_pass[16];
 	char db_user[16];
@@ -230,6 +232,9 @@ void registrasi(){
 	int invalidInput;
 	int userID;
 	int userMode;
+	
+	if(login_db == NULL || user_db == NULL)
+		noFile = 1;
 	
 	do{
 		system("CLS");
@@ -244,7 +249,7 @@ void registrasi(){
 		printf("Password: ");
 		scanf(" %s", input_pass);
 		
-		while(login_db != NULL && !feof(login_db)){
+		while(!noFile && !feof(login_db)){
 			fscanf(login_db, " %s %*s", db_user);
 			if(strcmp(input_user, db_user) == 0){
 				printf("Username tersebut sudah terdaftar!\n");
@@ -258,7 +263,8 @@ void registrasi(){
 	printf("Nama Lengkap: ");
 	scanf(" %[^\n]%*c", nama);
 	
-	while(!feof(user_db)){
+	userID = 0;
+	while(!noFile && !feof(user_db)){
 		fscanf(user_db, " %*[^\n] %*d %d", &userID);
 	}
 	++userID;
@@ -271,8 +277,14 @@ void registrasi(){
 			printf("ERROR: Input harus sesuai format!\n");
 	} while(invalidInput);
 	
-	freopen("login.txt", "a", login_db);
-	freopen("akun.txt", "a", user_db);
+	
+	if(noFile){
+		login_db = fopen("login.txt", "a");
+		user_db = fopen("akun.txt", "a");
+	} else{
+		freopen("login.txt", "a", login_db);
+		freopen("akun.txt", "a",  user_db);
+	}
 	fprintf(login_db, "\n%s %s", input_user, input_pass);
 	fprintf(user_db, "\n%s\n%d %04d", nama, userMode, userID);
 	
