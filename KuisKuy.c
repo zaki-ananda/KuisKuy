@@ -613,13 +613,22 @@ void submitJawaban(Kuis kuis, int userID){
 }
 
 void linear_search(Kuis * kuis, int n, char key[64], int searchResult[100]) {
-    int i, counter = 0;
+    int i, j, counter = 0;
+    char temp[100];
     
+    for(i=0; key[i] != '\0'; ++i) 
+    	key[i] = tolower(key[i]);
+    	
+    counter = 0;
     #pragma omp parallel for num_threads(omp_get_max_threads())
     for (i = 0; i < n; i++) {
-        if (strstr(kuis[i].judul, key) != NULL) { 
+    	for (j=0; kuis[i].judul[j] != '\0'; ++j) 
+    		temp[j] = tolower(kuis[i].judul[j]);
+    	temp[j] = '\0';
+    	
+        if (strstr(temp, key) != NULL) { 
 			#pragma omp critical
-			{ 
+			{
 				searchResult[counter] = i;
 				++counter;
 			}
