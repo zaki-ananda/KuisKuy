@@ -672,7 +672,9 @@ int searchKuis () {
 		//printf("%s", kuisArr[counter].judul);
 	}
 	
-	printf("\n======== Pencarian Kuis ========\n\n");
+	printf("==============================\n");
+	printf("||      Pencarian Kuis      ||\n");
+	printf("==============================\n\n");
 	printf("Masukkan search key: ");
 	scanf(" %[^\n]s", key);
 	printf("\n");
@@ -682,6 +684,9 @@ int searchKuis () {
 	//Output menu hasil pencarian + error handling input pemilihan kuis
 	do{
 		system("CLS");
+		printf("==============================\n");
+		printf("||      Hasil Pencarian     ||\n");
+		printf("==============================\n\n");
 		if(searchResult[0] == -1) {
 			printf("Kuis tidak ditemukan");
 			system("Pause");
@@ -698,7 +703,7 @@ int searchKuis () {
 		printf("\n=================================\n");
 		printf("0. Keluar\n");
 		printf("Input: ");
-		scanf(" %d", &menuInput);
+		scanf("%d", &menuInput);
 	} while(menuInput < 0 || menuInput > i);
 	
 	fclose(daftarKuis);
@@ -724,9 +729,7 @@ void menu_guru(UserInfo user){
 		
 		repeatMenu = 1;
 		
-		printf("===================");
-		printf("=== Selamat datang, Guru %s ===", user.nama);
-		printf("===================");
+		printf("==== Selamat datang, Guru %s ====\n", user.nama);
 		printf("\n1. Buat Kuis Baru");
 		printf("\n2. Cek Nilai Kuis Siswa");
 		printf("\n\n0. Logout");
@@ -1041,6 +1044,9 @@ void outputNilai(int kuisID, int userID){
 			while(!feof(user_db)){
 				fscanf(user_db, " %[^\n]%*c", nama_current);
 				fscanf(user_db, " %*d %d", &userID_userdb);
+				printf("==============================\n");
+				printf("||         Nilai Kuis       ||\n");
+				printf("==============================\n\n");
 				if(userID_kuisdata == userID_userdb){
 					printf("%s %.0f\n", nama_current, nilai_current);
 					break;
