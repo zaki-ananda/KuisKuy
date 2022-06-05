@@ -13,6 +13,7 @@ Pemrograman Lanjut-02*/
 #include <stdlib.h>
 #include <math.h>
 #include <omp.h>
+#include <ctype.h>
 
 typedef struct{
 	char nama[64];
@@ -498,10 +499,8 @@ void kerjakanKuis(int kuisID, int userID){
 		}
 	} while (soalSekarang != NULL);
 	
-	system("CLS");
-	
-	printf("Jawaban berhasil disubmit!\n");
-	system("Pause");
+	//system("CLS");
+	//system("Pause");
 }
 
 Kuis readFromFile_kuis(int kuisID){
@@ -599,7 +598,7 @@ void submitJawaban(Kuis kuis, int userID){
 	//Looping untuk memasukkan jawaban ke file
 	for(soalSekarang = kuis.soalPertama; soalSekarang != NULL; soalSekarang = soalSekarang->next)
 		fprintf(jawabanFile, "%c", soalSekarang->jawaban);
-
+	
 	//Masukkan userID ke [kuisID]_data.txt
 	//menandakan bahwa user telah mengerjakan kuis
 	sprintf(filename, "%04d_data.txt", kuis.ID);
@@ -610,6 +609,11 @@ void submitJawaban(Kuis kuis, int userID){
 	fflush(kuisData);
 	fclose(jawabanFile);
 	fclose(kuisData);
+	
+	printf("Jawaban berhasil disubmit!\n");
+	
+	penilaian(kuis.ID);
+	outputNilai(kuis.ID, userID);
 }
 
 void linear_search(Kuis * kuis, int n, char key[64], int searchResult[100]) {
@@ -724,8 +728,7 @@ void menu_guru(UserInfo user){
 		printf("=== Selamat datang, Guru %s ===", user.nama);
 		printf("===================");
 		printf("\n1. Buat Kuis Baru");
-		printf("\n2. Lakukan Penilaian Kuis");
-		printf("\n3. Cek Nilai Kuis Siswa");
+		printf("\n2. Cek Nilai Kuis Siswa");
 		printf("\n\n0. Logout");
 		//fflush(stdin);
 		printf("\n\nPilihan: ");
@@ -737,11 +740,6 @@ void menu_guru(UserInfo user){
 				//printf("DBG Finished buatKuis\n");
 				break;
 			case 2:
-				retVal = menu_pilihKuis();
-				if(retVal != 0)
-					penilaian(retVal);
-				break;
-			case 3:
 				retVal = menu_pilihKuis();
 				if(retVal != 0)
 					outputNilai(retVal, 0);
@@ -890,7 +888,6 @@ void writeToFile_kuis(Kuis kuis){
 void penilaian(int kuisID){
 	char filename[32];
 	char inputToken[32];
-	char input_conf;
 	FILE * kuisData;
 	FILE * jawabanFile;
 	int scored;
@@ -912,13 +909,15 @@ void penilaian(int kuisID){
 	
 	fscanf(kuisData, " %[^\n]s", inputToken);
 	scored = strcmp(inputToken, "SCORED") == 0;
-	if(scored){
+	/*if(scored){
 		printf("Kuis sudah pernah dinilai.\n Apakah Anda ingin mengulang proses penilaian? (Y/N)\n");
 		printf("Input: ");
 		scanf(" %c", &input_conf);
 		if(input_conf == 'N')
 			return;
-	} else if(strcmp(inputToken, "NOSCORE") != 0){
+	} 
+	else*/ 
+	if(!scored && strcmp(inputToken, "NOSCORE") != 0){
 		printf("ERROR: Tidak ada flag pada file data kuis!\n");
 		system("Pause");
 		return;
@@ -972,7 +971,7 @@ void penilaian(int kuisID){
 			}
 		}
 		//printf("DBG benar_counter %d\n", benar_counter);
-		system("Pause");
+		//system("Pause");
 		nilai[i] = ((float)benar_counter/(float)j_size) * 100.0;
 	}
 	
@@ -989,9 +988,9 @@ void penilaian(int kuisID){
 	fclose(kuisData);
 	fclose(jawabanFile);
 	
-	system("CLS");
+	//system("CLS");
 	printf("Penilaian berhasil dilakukan!\n");
-	system("Pause");
+	//system("Pause");
 }
 
 void outputNilai(int kuisID, int userID){
